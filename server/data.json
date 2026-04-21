@@ -1,0 +1,42 @@
+{
+  "habits": [
+    {
+      "id": "habit-walking",
+      "name": "Walking",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "habit-reading",
+      "name": "Reading",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "habit-exercise",
+      "name": "Exercise",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "habit-1776802138202",
+      "name": "Streaming",
+      "createdAt": "2026-04-21T20:08:58.202Z"
+    }
+  ],
+  "entries": {
+    "2026-04-22": {
+      "habit-walking": "done",
+      "habit-exercise": "done",
+      "habit-1776802138202": "done",
+      "habit-reading": "done"
+    },
+    "2026-04-21": {
+      "habit-walking": "done",
+      "habit-reading": "done",
+      "habit-exercise": "done"
+    }
+  },
+  "dayStatus": {
+    "2026-04-22": "active",
+    "2026-04-07": "active",
+    "2026-04-09": "active"
+  }
+}
