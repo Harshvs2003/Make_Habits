@@ -19,6 +19,7 @@ type HabitStore = {
   error: string;
   hydrate: () => Promise<void>;
   addHabit: (name: string) => Promise<void>;
+  deleteHabit: (id: string) => Promise<void>;
   setEntry: (date: string, habitId: string, status: EntryStatus) => Promise<void>;
   setDayStatus: (date: string, status: DayStatus) => Promise<void>;
 };
@@ -61,6 +62,36 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       set({
         saving: false,
         error: error instanceof Error ? error.message : "Failed to add habit.",
+      });
+    }
+  },
+
+  deleteHabit: async (id) => {
+    const previousHabits = get().habits;
+    const previousEntries = get().entries;
+
+    set((state) => ({
+      saving: true,
+      error: "",
+      habits: state.habits.filter((habit) => habit.id !== id),
+      entries: Object.fromEntries(
+        Object.entries(state.entries).map(([date, values]) => {
+          const nextValues = { ...values };
+          delete nextValues[id];
+          return [date, nextValues];
+        })
+      ),
+    }));
+
+    try {
+      await api.deleteHabit(id);
+      set({ saving: false });
+    } catch (error) {
+      set({
+        habits: previousHabits,
+        entries: previousEntries,
+        saving: false,
+        error: error instanceof Error ? error.message : "Failed to delete habit.",
       });
     }
   },

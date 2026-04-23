@@ -111,6 +111,32 @@ app.post("/habits", async (req, res) => {
   }
 });
 
+app.delete("/habits/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = sanitize(await readData());
+    const exists = data.habits.some((habit) => habit.id === id);
+
+    if (!exists) {
+      res.status(404).json({ message: "Habit not found." });
+      return;
+    }
+
+    data.habits = data.habits.filter((habit) => habit.id !== id);
+
+    Object.keys(data.entries).forEach((date) => {
+      if (data.entries[date] && typeof data.entries[date] === "object") {
+        delete data.entries[date][id];
+      }
+    });
+
+    await writeData(data);
+    res.json({ id });
+  } catch (_error) {
+    res.status(500).json({ message: "Failed to delete habit." });
+  }
+});
+
 app.get("/entries", async (_req, res) => {
   try {
     const data = sanitize(await readData());

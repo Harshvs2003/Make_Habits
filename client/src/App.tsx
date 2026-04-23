@@ -4,6 +4,7 @@ import TodayPage from "./pages/TodayPage.tsx";
 import MonthPage from "./pages/MonthPage.tsx";
 import DayDetailsPage from "./pages/DayDetailsPage.tsx";
 import GridPage from "./pages/GridPage.tsx";
+import HabitsPage from "./pages/HabitsPage.tsx";
 import { useHabitStore } from "./store/useHabitStore.tsx";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -43,6 +44,9 @@ function App() {
           <NavLink to="/grid" className={navLinkClass}>
             Grid
           </NavLink>
+          <NavLink to="/habits" className={navLinkClass}>
+            Habits
+          </NavLink>
         </nav>
       </header>
 
@@ -52,6 +56,7 @@ function App() {
           <Route path="/month" element={<MonthPage />} />
           <Route path="/day/:date" element={<DayDetailsPage />} />
           <Route path="/grid" element={<GridPage />} />
+          <Route path="/habits" element={<HabitsPage />} />
         </Routes>
       </main>
 

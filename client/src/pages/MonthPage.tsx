@@ -1,4 +1,5 @@
-﻿import { useMemo, useState } from "react";
+﻿import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import LoadingState from "../components/LoadingState.tsx";
 import { getMonthDays, monthLabel } from "../lib/date.tsx";
 import { useHabitStore } from "../store/useHabitStore.tsx";
@@ -34,6 +35,7 @@ function MonthPage() {
     const totalPossible = perHabit.reduce((sum, row) => sum + row.total, 0);
     return totalPossible ? Math.round((totalDone / totalPossible) * 100) : 0;
   }, [perHabit]);
+
   const topHabit = useMemo(
     () => perHabit.slice().sort((a, b) => b.percent - a.percent)[0],
     [perHabit]
@@ -81,6 +83,7 @@ function MonthPage() {
             <p className="mt-2 text-3xl font-bold text-slate-900">{days.length - activeDays.length}</p>
           </div>
         </div>
+
         {topHabit ? (
           <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 px-5 py-4">
             <p className="text-xs uppercase tracking-[0.12em] text-blue-700">Best Performer</p>
@@ -96,7 +99,7 @@ function MonthPage() {
         {perHabit.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
             <p className="text-base font-semibold text-slate-700">No habits to analyze yet</p>
-            <p className="mt-1 text-sm text-slate-500">Create habits from Today to unlock monthly insights.</p>
+            <p className="mt-1 text-sm text-slate-500">Create habits from Habit Library to unlock monthly insights.</p>
           </div>
         ) : (
           perHabit.map((row) => (
@@ -116,6 +119,24 @@ function MonthPage() {
             </div>
           ))
         )}
+      </div>
+
+      <div className="glass-panel space-y-3 p-5 sm:p-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Open Day Details</h3>
+          <span className="text-xs text-slate-500">Tap a date to edit that day</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {days.map((day) => (
+            <Link
+              key={day.iso}
+              to={`/day/${day.iso}`}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:-translate-y-px hover:border-blue-200 hover:bg-blue-50"
+            >
+              {day.dayNumber}
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

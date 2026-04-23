@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import LoadingState from "../components/LoadingState.tsx";
 import { getMonthDays, monthLabel } from "../lib/date.tsx";
 import { useHabitStore, type EntryStatus } from "../store/useHabitStore.tsx";
@@ -75,7 +76,7 @@ function GridPage() {
             <thead>
               <tr>
                 <th className="sticky left-0 z-20 min-w-48 border-b border-slate-200 bg-white px-4 py-3 text-left font-semibold text-slate-800">
-                  Habit / Day
+                  Day Status
                 </th>
                 {monthDays.map((day) => {
                   const status = dayStatus[day.iso] || "active";
@@ -103,12 +104,27 @@ function GridPage() {
                   );
                 })}
               </tr>
+              <tr>
+                <th className="sticky left-0 z-20 min-w-48 border-b border-slate-200 bg-white px-4 py-2 text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Open Day
+                </th>
+                {monthDays.map((day) => (
+                  <th key={`open-${day.iso}`} className="border-b border-slate-200 bg-white px-2 py-2 text-center">
+                    <Link
+                      to={`/day/${day.iso}`}
+                      className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-blue-100 hover:text-blue-700"
+                    >
+                      Open
+                    </Link>
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
               {habits.length === 0 ? (
                 <tr>
                   <td className="sticky left-0 z-10 border-b border-slate-100 bg-white px-4 py-6 font-semibold text-slate-900">
-                    Add habits from Today
+                    Add habits from Habit Library
                   </td>
                   {monthDays.map((day) => (
                     <td
@@ -123,50 +139,50 @@ function GridPage() {
                 </tr>
               ) : (
                 habits.map((habit) => (
-                <tr key={habit.id} className="align-middle">
-                  <td className="sticky left-0 z-10 border-b border-slate-100 bg-white px-4 py-3 font-semibold text-slate-900">
-                    {habit.name}
-                  </td>
-                  {monthDays.map((day) => {
-                    const dayIsSkipped = (dayStatus[day.iso] || "active") === "skipped";
-                    const rawStatus = entries[day.iso]?.[habit.id] || "missed";
-                    const status = rawStatus === "done" ? "done" : "missed";
+                  <tr key={habit.id} className="align-middle">
+                    <td className="sticky left-0 z-10 border-b border-slate-100 bg-white px-4 py-3 font-semibold text-slate-900">
+                      {habit.name}
+                    </td>
+                    {monthDays.map((day) => {
+                      const dayIsSkipped = (dayStatus[day.iso] || "active") === "skipped";
+                      const rawStatus = entries[day.iso]?.[habit.id] || "missed";
+                      const status = rawStatus === "done" ? "done" : "missed";
 
-                    return (
-                      <td
-                        key={`${habit.id}-${day.iso}`}
-                        className={`border-b border-slate-100 px-2 py-2 text-center ${
-                          dayIsSkipped ? "column-skipped" : "bg-white"
-                        }`}
-                      >
-                        <button
-                          disabled={dayIsSkipped}
-                          onClick={() => void setEntry(day.iso, habit.id, status === "done" ? "missed" : "done")}
-                          onContextMenu={(event) => {
-                            event.preventDefault();
-                            if (dayIsSkipped) {
-                              return;
-                            }
-
-                            setMenu({
-                              x: event.clientX,
-                              y: event.clientY,
-                              habitId: habit.id,
-                              date: day.iso,
-                            });
-                          }}
-                          className={`h-10 w-10 rounded-xl border text-base font-bold transition ${
-                            dayIsSkipped
-                              ? "cursor-not-allowed border-slate-200 text-slate-400"
-                              : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
-                          } ${status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
+                      return (
+                        <td
+                          key={`${habit.id}-${day.iso}`}
+                          className={`border-b border-slate-100 px-2 py-2 text-center ${
+                            dayIsSkipped ? "column-skipped" : "bg-white"
+                          }`}
                         >
-                          {status === "done" ? "✓" : "·"}
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
+                          <button
+                            disabled={dayIsSkipped}
+                            onClick={() => void setEntry(day.iso, habit.id, status === "done" ? "missed" : "done")}
+                            onContextMenu={(event) => {
+                              event.preventDefault();
+                              if (dayIsSkipped) {
+                                return;
+                              }
+
+                              setMenu({
+                                x: event.clientX,
+                                y: event.clientY,
+                                habitId: habit.id,
+                                date: day.iso,
+                              });
+                            }}
+                            className={`h-10 w-10 rounded-xl border text-base font-bold transition ${
+                              dayIsSkipped
+                                ? "cursor-not-allowed border-slate-200 text-slate-400"
+                                : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
+                            } ${status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
+                          >
+                            {status === "done" ? "✓" : "·"}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
                 ))
               )}
             </tbody>

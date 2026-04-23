@@ -57,6 +57,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name }),
     }),
+  deleteHabit: (id: string) =>
+    request(`/habits/${id}`, {
+      method: "DELETE",
+    }),
   getEntries: () => request("/entries"),
   setEntry: (date: string, habitId: string, status: string) =>
     request("/entries", {
