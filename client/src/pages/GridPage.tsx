@@ -21,6 +21,14 @@ function GridPage() {
   const { habits, entries, dayStatus, loading, setEntry, setDayStatus } = useHabitStore();
 
   const monthDays = useMemo(() => getMonthDays(cursor), [cursor]);
+  const now = new Date();
+  const isFutureMonth =
+    cursor.getFullYear() > now.getFullYear() ||
+    (cursor.getFullYear() === now.getFullYear() && cursor.getMonth() > now.getMonth());
+  const monthStartLabel = new Date(cursor.getFullYear(), cursor.getMonth(), 1).toLocaleDateString(
+    undefined,
+    { month: "long", day: "numeric", year: "numeric" }
+  );
   const activeDays = useMemo(
     () => monthDays.filter((day) => (dayStatus[day.iso] || "active") === "active"),
     [monthDays, dayStatus]
@@ -53,7 +61,7 @@ function GridPage() {
   }
 
   const applyStatus = (entryStatus: EntryStatus) => {
-    if (!menu) {
+    if (!menu || isFutureMonth) {
       return;
     }
 
@@ -89,6 +97,11 @@ function GridPage() {
         <span className="rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-800">Skip = excluded</span>
         <span className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800">Right-click cell for quick actions</span>
       </div>
+      {isFutureMonth ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Future month is view-only. Editing unlocks on {monthStartLabel}.
+        </div>
+      ) : null}
 
       <div className="glass-panel overflow-hidden p-2 sm:p-3">
         <div className="overflow-x-auto">
@@ -110,12 +123,13 @@ function GridPage() {
                       }`}
                     >
                       <button
+                        disabled={isFutureMonth}
                         onClick={() => void setDayStatus(day.iso, skipped ? "active" : "skipped")}
                         className={`w-full rounded-xl px-2 py-2 transition ${
                           skipped
                             ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
                             : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                        }`}
+                        } ${isFutureMonth ? "cursor-not-allowed opacity-55 hover:bg-inherit" : ""}`}
                       >
                         <div className="font-semibold">{day.dayNumber}</div>
                         <div className="text-[11px] uppercase tracking-wide">{skipped ? "Skip" : "On"}</div>
@@ -176,11 +190,11 @@ function GridPage() {
                           }`}
                         >
                           <button
-                            disabled={dayIsSkipped}
+                            disabled={dayIsSkipped || isFutureMonth}
                             onClick={() => void setEntry(day.iso, habit.id, status === "done" ? "missed" : "done")}
                             onContextMenu={(event) => {
                               event.preventDefault();
-                              if (dayIsSkipped) {
+                              if (dayIsSkipped || isFutureMonth) {
                                 return;
                               }
 

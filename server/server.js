@@ -43,6 +43,11 @@ let writeQueue = Promise.resolve();
 const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 const isEntryStatus = (value) => ["done", "skipped", "missed"].includes(value);
 const isDayStatus = (value) => ["active", "skipped"].includes(value);
+const isFutureMonthDate = (value) => {
+  const [year, month] = value.split("-").map(Number);
+  const now = new Date();
+  return year > now.getFullYear() || (year === now.getFullYear() && month - 1 > now.getMonth());
+};
 
 const readData = async () => {
   const raw = await fs.readFile(DATA_FILE, "utf8");
@@ -164,6 +169,10 @@ app.post("/entries", async (req, res) => {
       res.status(400).json({ message: "status must be done, skipped, or missed." });
       return;
     }
+    if (isFutureMonthDate(date)) {
+      res.status(403).json({ message: "Future month is locked until it starts." });
+      return;
+    }
 
     const data = sanitize(await readData());
     const habitExists = data.habits.some((habit) => habit.id === habitId);
@@ -218,6 +227,10 @@ app.post("/day-status", async (req, res) => {
 
     if (!isDayStatus(status)) {
       res.status(400).json({ message: "status must be active or skipped." });
+      return;
+    }
+    if (isFutureMonthDate(date)) {
+      res.status(403).json({ message: "Future month is locked until it starts." });
       return;
     }
 
