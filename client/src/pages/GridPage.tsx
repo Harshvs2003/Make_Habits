@@ -21,6 +21,26 @@ function GridPage() {
   const { habits, entries, dayStatus, loading, setEntry, setDayStatus } = useHabitStore();
 
   const monthDays = useMemo(() => getMonthDays(cursor), [cursor]);
+  const activeDays = useMemo(
+    () => monthDays.filter((day) => (dayStatus[day.iso] || "active") === "active"),
+    [monthDays, dayStatus]
+  );
+  const skippedDays = monthDays.length - activeDays.length;
+  const perHabit = useMemo(
+    () =>
+      habits.map((habit) => {
+        const completed = activeDays.filter((day) => entries[day.iso]?.[habit.id] === "done").length;
+        const total = activeDays.length;
+        const percent = total ? Math.round((completed / total) * 100) : 0;
+        return { habit, completed, total, percent };
+      }),
+    [habits, activeDays, entries]
+  );
+  const consistency = useMemo(() => {
+    const totalDone = perHabit.reduce((sum, row) => sum + row.completed, 0);
+    const totalPossible = perHabit.reduce((sum, row) => sum + row.total, 0);
+    return totalPossible ? Math.round((totalDone / totalPossible) * 100) : 0;
+  }, [perHabit]);
 
   useEffect(() => {
     const closeMenu = () => setMenu(null);
@@ -200,6 +220,59 @@ function GridPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="glass-panel space-y-5 p-5 sm:p-7">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Monthly Analysis ({monthLabel(cursor)})
+          </h3>
+          <span className="text-xs text-slate-500">Updates instantly from grid changes</span>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-lg shadow-slate-900/20">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-300">Consistency</p>
+            <p className="mt-2 text-3xl font-bold">{consistency}%</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Active Days</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{activeDays.length}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Skipped Days</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{skippedDays}</p>
+          </div>
+        </div>
+
+        {perHabit.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
+            <p className="text-base font-semibold text-slate-700">No habits to analyze</p>
+            <p className="mt-1 text-sm text-slate-500">Add habits in Habit Library to see month insights.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {perHabit.map((row) => (
+              <div
+                key={row.habit.id}
+                className="rounded-2xl border border-slate-200/70 bg-white/80 p-4"
+              >
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-slate-800">{row.habit.name}</span>
+                  <span className="text-slate-500">
+                    {row.completed}/{row.total} active days
+                  </span>
+                </div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                    style={{ width: `${row.percent}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {menu ? (

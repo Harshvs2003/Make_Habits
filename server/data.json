@@ -50,11 +50,14 @@
     },
     "2026-04-03": {
       "habit-reading": "done",
-      "habit-exercise": "done"
+      "habit-exercise": "done",
+      "habit-1776802138202": "done",
+      "habit-walking": "missed"
     },
     "2026-04-02": {
       "habit-reading": "done",
-      "habit-1776802138202": "done"
+      "habit-1776802138202": "done",
+      "habit-walking": "done"
     },
     "2026-04-01": {
       "habit-exercise": "done",
@@ -63,28 +66,32 @@
       "habit-1776802138202": "done"
     },
     "2026-04-04": {
-      "habit-reading": "done",
+      "habit-reading": "missed",
       "habit-exercise": "done",
-      "habit-walking": "done"
+      "habit-walking": "done",
+      "habit-1776802138202": "done"
     },
     "2026-04-05": {
       "habit-reading": "done",
-      "habit-walking": "missed"
+      "habit-walking": "done",
+      "habit-1776802138202": "done",
+      "habit-exercise": "done"
     },
     "2026-04-07": {
-      "habit-exercise": "missed",
-      "habit-walking": "done",
+      "habit-exercise": "done",
+      "habit-walking": "missed",
       "habit-reading": "done"
     },
     "2026-04-06": {
-      "habit-reading": "done",
+      "habit-reading": "missed",
       "habit-1776802138202": "done",
       "habit-exercise": "done",
       "habit-walking": "done"
     },
     "2026-04-13": {
       "habit-exercise": "done",
-      "habit-walking": "done"
+      "habit-walking": "done",
+      "habit-reading": "done"
     },
     "2026-04-14": {
       "habit-walking": "done",
@@ -105,14 +112,15 @@
       "habit-1776802138202": "done"
     },
     "2026-04-10": {
-      "habit-reading": "missed",
+      "habit-reading": "done",
       "habit-1776802138202": "done",
-      "habit-exercise": "done"
+      "habit-exercise": "done",
+      "habit-walking": "done"
     },
     "2026-04-09": {
       "habit-reading": "done",
       "habit-exercise": "done",
-      "habit-1776802138202": "done"
+      "habit-1776802138202": "missed"
     },
     "2026-04-24": {
       "habit-reading": "done",
@@ -122,7 +130,23 @@
     },
     "2026-04-08": {
       "habit-reading": "done",
-      "habit-1776802138202": "done"
+      "habit-1776802138202": "done",
+      "habit-exercise": "done",
+      "habit-walking": "done"
+    },
+    "2026-04-11": {
+      "habit-reading": "done",
+      "habit-walking": "done",
+      "habit-exercise": "done"
+    },
+    "2026-04-12": {
+      "habit-exercise": "missed",
+      "habit-1776802138202": "done",
+      "habit-reading": "done",
+      "habit-walking": "done"
+    },
+    "2026-06-09": {
+      "habit-walking": "missed"
     }
   },
   "dayStatus": {
