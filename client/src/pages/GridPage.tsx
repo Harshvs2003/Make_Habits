@@ -177,7 +177,19 @@ function GridPage() {
                                 : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
                             } ${status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
                           >
-                            {status === "done" ? "✓" : "·"}
+                            {status === "done" ? (
+                              <svg
+                                viewBox="0 0 20 20"
+                                className="mx-auto h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                              >
+                                <path d="M4 10.5l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            ) : (
+                              <span className="mx-auto block h-1.5 w-1.5 rounded-full bg-current" />
+                            )}
                           </button>
                         </td>
                       );
