@@ -38,14 +38,14 @@ function HabitCheckButton({ status, disabled = false, onToggleDone }: HabitCheck
       }}
       onPointerUp={clearTimer}
       onPointerLeave={clearTimer}
-      className={`grid h-12 w-12 place-items-center rounded-xl border-0 text-sm font-semibold transition-all duration-150 ${
+      className={`grid h-12 w-12 place-items-center rounded-2xl border text-lg font-bold transition-all duration-200 ${
         disabled
-          ? "cursor-not-allowed bg-slate-200 text-slate-400"
-          : "cursor-pointer bg-blue-50 text-blue-700 hover:scale-105 hover:bg-blue-100 active:scale-95"
-      } ${status === "done" ? "animate-pulseScale bg-blue-600 text-white" : ""}`}
+          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+          : "cursor-pointer border-blue-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow active:translate-y-0"
+      } ${status === "done" ? "animate-pulseScale border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-600/30" : ""}`}
       aria-label="Toggle habit done status"
     >
-      {status === "done" ? "OK" : "[]"}
+      {status === "done" ? "✓" : "○"}
     </button>
   );
 }

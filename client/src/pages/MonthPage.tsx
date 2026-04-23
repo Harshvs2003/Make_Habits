@@ -34,28 +34,32 @@ function MonthPage() {
     const totalPossible = perHabit.reduce((sum, row) => sum + row.total, 0);
     return totalPossible ? Math.round((totalDone / totalPossible) * 100) : 0;
   }, [perHabit]);
+  const topHabit = useMemo(
+    () => perHabit.slice().sort((a, b) => b.percent - a.percent)[0],
+    [perHabit]
+  );
 
   if (loading) {
     return <LoadingState label="Loading monthly overview..." />;
   }
 
   return (
-    <section className="space-y-5">
-      <div className="glass-panel space-y-4 p-5 sm:p-6">
+    <section className="space-y-6">
+      <div className="glass-panel space-y-5 p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Monthly Overview</p>
-            <h2 className="text-2xl font-semibold text-slate-900">{monthLabel(cursor)}</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Monthly Overview</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{monthLabel(cursor)}</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-200"
+              className="soft-button"
               onClick={() => setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
             >
-              Prev
+              Previous
             </button>
             <button
-              className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-200"
+              className="soft-button"
               onClick={() => setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
             >
               Next
@@ -64,38 +68,54 @@ function MonthPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-blue-600 px-4 py-4 text-white">
-            <p className="text-xs uppercase tracking-wide text-blue-100">Total Consistency</p>
-            <p className="mt-2 text-3xl font-semibold">{consistency}%</p>
+          <div className="rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-lg shadow-slate-900/20">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-300">Total Consistency</p>
+            <p className="mt-2 text-3xl font-bold">{consistency}%</p>
           </div>
-          <div className="rounded-xl bg-slate-100 px-4 py-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Active Days</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{activeDays.length}</p>
+          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Active Days</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{activeDays.length}</p>
           </div>
-          <div className="rounded-xl bg-slate-100 px-4 py-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Skipped Days</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{days.length - activeDays.length}</p>
+          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Skipped Days</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900">{days.length - activeDays.length}</p>
           </div>
         </div>
+        {topHabit ? (
+          <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-blue-700">Best Performer</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">
+              {topHabit.habit.name} at {topHabit.percent}%
+            </p>
+          </div>
+        ) : null}
       </div>
 
-      <div className="glass-panel space-y-4 p-5 sm:p-6">
-        {perHabit.map((row) => (
-          <div key={row.habit.id} className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-slate-800">{row.habit.name}</span>
-              <span className="text-slate-500">
-                {row.completed}/{row.total} days
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${row.percent}%` }}
-              />
-            </div>
+      <div className="glass-panel space-y-5 p-5 sm:p-7">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Habit Consistency</h3>
+        {perHabit.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
+            <p className="text-base font-semibold text-slate-700">No habits to analyze yet</p>
+            <p className="mt-1 text-sm text-slate-500">Create habits from Today to unlock monthly insights.</p>
           </div>
-        ))}
+        ) : (
+          perHabit.map((row) => (
+            <div key={row.habit.id} className="space-y-2 rounded-2xl border border-slate-200/70 bg-white/80 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-slate-800">{row.habit.name}</span>
+                <span className="text-slate-500">
+                  {row.completed}/{row.total} days
+                </span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                  style={{ width: `${row.percent}%` }}
+                />
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </section>
   );

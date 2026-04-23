@@ -7,22 +7,22 @@ type DayStatusToggleProps = {
 
 function DayStatusToggle({ value, onChange }: DayStatusToggleProps) {
   return (
-    <div className="inline-flex items-center rounded-xl bg-slate-100 p-1">
+    <div className="inline-flex items-center rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1.5">
       <button
-        className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+        className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
           value === "active"
-            ? "bg-white text-emerald-700 shadow"
-            : "text-slate-500 hover:text-slate-700"
+            ? "bg-emerald-500 text-white shadow"
+            : "text-slate-500 hover:bg-white hover:text-slate-800"
         }`}
         onClick={() => onChange("active")}
       >
         Active Day
       </button>
       <button
-        className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+        className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${
           value === "skipped"
-            ? "bg-white text-amber-700 shadow"
-            : "text-slate-500 hover:text-slate-700"
+            ? "bg-amber-500 text-white shadow"
+            : "text-slate-500 hover:bg-white hover:text-slate-800"
         }`}
         onClick={() => onChange("skipped")}
       >
