@@ -85,8 +85,8 @@ function MonthPage() {
         </div>
 
         {topHabit ? (
-          <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-cyan-50 px-5 py-4">
-            <p className="text-xs uppercase tracking-[0.12em] text-blue-700">Best Performer</p>
+          <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.12em] text-emerald-700">Best Performer</p>
             <p className="mt-1 text-lg font-semibold text-slate-900">
               {topHabit.habit.name} at {topHabit.percent}%
             </p>
@@ -113,7 +113,7 @@ function MonthPage() {
               <div className="flex items-center gap-3">
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400 transition-all duration-300"
                     style={{ width: `${row.percent}%` }}
                   />
                 </div>

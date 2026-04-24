@@ -40,7 +40,7 @@ function TodayPage() {
               </p>
               <div className="mt-3 h-2 w-52 overflow-hidden rounded-full bg-slate-200">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-300"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-green-500 transition-all duration-300"
                   style={{ width: `${completionPercent}%` }}
                 />
               </div>
