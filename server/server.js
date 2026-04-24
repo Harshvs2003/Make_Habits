@@ -20,6 +20,13 @@ const clientOrigins = (process.env.CLIENT_ORIGIN || "")
   .split(",")
   .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
+const exactClientOrigins = clientOrigins.filter((origin) => !origin.includes("*"));
+const wildcardClientOriginPatterns = clientOrigins
+  .filter((origin) => origin.includes("*"))
+  .map((origin) => {
+    const escaped = origin.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    return new RegExp(`^${escaped}$`);
+  });
 
 const app = express();
 
@@ -30,6 +37,20 @@ const isLocalhostOrigin = (origin) => {
   } catch (_error) {
     return false;
   }
+};
+
+const isAllowedClientOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (exactClientOrigins.includes(normalizedOrigin)) {
+    return true;
+  }
+
+  return wildcardClientOriginPatterns.some((pattern) => pattern.test(normalizedOrigin));
 };
 
 const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -45,19 +66,18 @@ app.use(
   cors({
     origin(origin, callback) {
       const allowAllConfigured = clientOrigins.length === 0;
-      const normalizedOrigin = origin ? normalizeOrigin(origin) : origin;
 
       if (
         !origin ||
         allowAllConfigured ||
-        clientOrigins.includes(normalizedOrigin) ||
+        isAllowedClientOrigin(origin) ||
         isLocalhostOrigin(origin)
       ) {
         callback(null, true);
         return;
       }
 
-      callback(new Error("CORS blocked: origin not allowed"));
+      callback(new Error(`CORS blocked: origin not allowed (${origin})`));
     },
   })
 );
