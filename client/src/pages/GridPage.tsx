@@ -208,7 +208,7 @@ function GridPage() {
                               dayIsSkipped
                                 ? "cursor-not-allowed border-rose-200 bg-rose-100 text-rose-600"
                                 : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
-                            } ${!dayIsSkipped && status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
+                            } ${!dayIsSkipped && status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : ""}`}
                           >
                             {dayIsSkipped ? (
                               <span className="mx-auto block h-1.5 w-6 rounded-full bg-current" />
