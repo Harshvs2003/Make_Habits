@@ -179,8 +179,7 @@ function GridPage() {
                     </td>
                     {monthDays.map((day) => {
                       const dayIsSkipped = (dayStatus[day.iso] || "active") === "skipped";
-                      const rawStatus = entries[day.iso]?.[habit.id] || "missed";
-                      const status = rawStatus === "done" ? "done" : "missed";
+                      const status = entries[day.iso]?.[habit.id] ?? "missed";
 
                       return (
                         <td
@@ -207,11 +206,13 @@ function GridPage() {
                             }}
                             className={`h-10 w-10 rounded-xl border text-base font-bold transition ${
                               dayIsSkipped
-                                ? "cursor-not-allowed border-slate-200 text-slate-400"
+                                ? "cursor-not-allowed border-rose-200 bg-rose-100 text-rose-600"
                                 : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
-                            } ${status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
+                            } ${!dayIsSkipped && status === "done" ? "border-blue-600 bg-blue-600 text-white" : ""}`}
                           >
-                            {status === "done" ? (
+                            {dayIsSkipped ? (
+                              <span className="mx-auto block h-1.5 w-6 rounded-full bg-current" />
+                            ) : status === "done" ? (
                               <svg
                                 viewBox="0 0 20 20"
                                 className="w-4 h-4 mx-auto"

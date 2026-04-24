@@ -73,7 +73,7 @@ body::before {
 }
 
 .column-skipped {
-  @apply bg-slate-100/80 text-slate-400;
+  @apply bg-rose-50 text-rose-500;
 }
 
 ::-webkit-scrollbar {

@@ -82,7 +82,7 @@ function TodayPage() {
         ) : (
           <ul className="space-y-3">
             {habits.map((habit) => {
-              const status = todayEntries[habit.id] === "done" ? "done" : "missed";
+              const status = todayEntries[habit.id] ?? "missed";
 
               return (
                 <li
