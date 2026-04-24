@@ -15,9 +15,10 @@ const {
 } = require("./db");
 
 const PORT = process.env.PORT || 4000;
+const normalizeOrigin = (origin) => origin.replace(/\/$/, "");
 const clientOrigins = (process.env.CLIENT_ORIGIN || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
 
 const app = express();
@@ -44,8 +45,14 @@ app.use(
   cors({
     origin(origin, callback) {
       const allowAllConfigured = clientOrigins.length === 0;
+      const normalizedOrigin = origin ? normalizeOrigin(origin) : origin;
 
-      if (!origin || allowAllConfigured || clientOrigins.includes(origin) || isLocalhostOrigin(origin)) {
+      if (
+        !origin ||
+        allowAllConfigured ||
+        clientOrigins.includes(normalizedOrigin) ||
+        isLocalhostOrigin(origin)
+      ) {
         callback(null, true);
         return;
       }
