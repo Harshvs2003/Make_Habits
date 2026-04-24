@@ -1,11 +1,20 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs/promises");
-const path = require("path");
+const {
+  initDb,
+  getHabits,
+  createHabit,
+  deleteHabit,
+  habitExists,
+  getEntries,
+  setEntry,
+  getDayStatusForDate,
+  getAllDayStatus,
+  setDayStatus,
+} = require("./db");
 
 const PORT = process.env.PORT || 4000;
-const DATA_FILE = path.join(__dirname, "data.json");
 const clientOrigins = (process.env.CLIENT_ORIGIN || "")
   .split(",")
   .map((origin) => origin.trim())
@@ -20,6 +29,15 @@ const isLocalhostOrigin = (origin) => {
   } catch (_error) {
     return false;
   }
+};
+
+const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+const isEntryStatus = (value) => ["done", "skipped", "missed"].includes(value);
+const isDayStatus = (value) => ["active", "skipped"].includes(value);
+const isFutureMonthDate = (value) => {
+  const [year, month] = value.split("-").map(Number);
+  const now = new Date();
+  return year > now.getFullYear() || (year === now.getFullYear() && month - 1 > now.getMonth());
 };
 
 app.use(
@@ -38,43 +56,19 @@ app.use(
 );
 app.use(express.json());
 
-let writeQueue = Promise.resolve();
-
-const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
-const isEntryStatus = (value) => ["done", "skipped", "missed"].includes(value);
-const isDayStatus = (value) => ["active", "skipped"].includes(value);
-const isFutureMonthDate = (value) => {
-  const [year, month] = value.split("-").map(Number);
-  const now = new Date();
-  return year > now.getFullYear() || (year === now.getFullYear() && month - 1 > now.getMonth());
-};
-
-const readData = async () => {
-  const raw = await fs.readFile(DATA_FILE, "utf8");
-  return JSON.parse(raw.replace(/^\uFEFF/, ""));
-};
-
-const writeData = async (nextData) => {
-  writeQueue = writeQueue.then(() =>
-    fs.writeFile(DATA_FILE, JSON.stringify(nextData, null, 2), "utf8")
-  );
-  await writeQueue;
-};
-
-const sanitize = (data) => ({
-  habits: Array.isArray(data.habits) ? data.habits : [],
-  entries: data.entries && typeof data.entries === "object" ? data.entries : {},
-  dayStatus: data.dayStatus && typeof data.dayStatus === "object" ? data.dayStatus : {},
-});
-
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get("/health", async (_req, res) => {
+  try {
+    await initDb();
+    res.json({ status: "ok" });
+  } catch (_error) {
+    res.status(500).json({ status: "error" });
+  }
 });
 
 app.get("/habits", async (_req, res) => {
   try {
-    const data = sanitize(await readData());
-    res.json(data.habits);
+    const habits = await getHabits();
+    res.json(habits);
   } catch (_error) {
     res.status(500).json({ message: "Failed to read habits." });
   }
@@ -89,29 +83,20 @@ app.post("/habits", async (req, res) => {
       return;
     }
 
-    const data = sanitize(await readData());
     const trimmedName = name.trim();
 
-    const alreadyExists = data.habits.some(
-      (habit) => habit.name.toLowerCase() === trimmedName.toLowerCase()
-    );
-
-    if (alreadyExists) {
-      res.status(409).json({ message: "Habit already exists." });
-      return;
-    }
-
-    const habit = {
+    const habit = await createHabit({
       id: `habit-${Date.now()}`,
       name: trimmedName,
       createdAt: new Date().toISOString(),
-    };
-
-    data.habits.push(habit);
-    await writeData(data);
+    });
 
     res.status(201).json(habit);
-  } catch (_error) {
+  } catch (error) {
+    if (error && error.code === 11000) {
+      res.status(409).json({ message: "Habit already exists." });
+      return;
+    }
     res.status(500).json({ message: "Failed to create habit." });
   }
 });
@@ -119,23 +104,13 @@ app.post("/habits", async (req, res) => {
 app.delete("/habits/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = sanitize(await readData());
-    const exists = data.habits.some((habit) => habit.id === id);
+    const removed = await deleteHabit(id);
 
-    if (!exists) {
+    if (!removed) {
       res.status(404).json({ message: "Habit not found." });
       return;
     }
 
-    data.habits = data.habits.filter((habit) => habit.id !== id);
-
-    Object.keys(data.entries).forEach((date) => {
-      if (data.entries[date] && typeof data.entries[date] === "object") {
-        delete data.entries[date][id];
-      }
-    });
-
-    await writeData(data);
     res.json({ id });
   } catch (_error) {
     res.status(500).json({ message: "Failed to delete habit." });
@@ -144,8 +119,8 @@ app.delete("/habits/:id", async (req, res) => {
 
 app.get("/entries", async (_req, res) => {
   try {
-    const data = sanitize(await readData());
-    res.json(data.entries);
+    const entries = await getEntries();
+    res.json(entries);
   } catch (_error) {
     res.status(500).json({ message: "Failed to read entries." });
   }
@@ -169,26 +144,19 @@ app.post("/entries", async (req, res) => {
       res.status(400).json({ message: "status must be done, skipped, or missed." });
       return;
     }
+
     if (isFutureMonthDate(date)) {
       res.status(403).json({ message: "Future month is locked until it starts." });
       return;
     }
 
-    const data = sanitize(await readData());
-    const habitExists = data.habits.some((habit) => habit.id === habitId);
-
-    if (!habitExists) {
+    const exists = await habitExists(habitId);
+    if (!exists) {
       res.status(404).json({ message: "Habit not found." });
       return;
     }
 
-    if (!data.entries[date]) {
-      data.entries[date] = {};
-    }
-
-    data.entries[date][habitId] = status;
-    await writeData(data);
-
+    await setEntry({ date, habitId, status });
     res.status(201).json({ date, habitId, status });
   } catch (_error) {
     res.status(500).json({ message: "Failed to save entry." });
@@ -197,7 +165,6 @@ app.post("/entries", async (req, res) => {
 
 app.get("/day-status", async (req, res) => {
   try {
-    const data = sanitize(await readData());
     const date = req.query.date;
 
     if (typeof date === "string") {
@@ -206,11 +173,13 @@ app.get("/day-status", async (req, res) => {
         return;
       }
 
-      res.json({ date, status: data.dayStatus[date] || "active" });
+      const status = await getDayStatusForDate(date);
+      res.json({ date, status });
       return;
     }
 
-    res.json(data.dayStatus);
+    const dayStatus = await getAllDayStatus();
+    res.json(dayStatus);
   } catch (_error) {
     res.status(500).json({ message: "Failed to read day status." });
   }
@@ -229,21 +198,29 @@ app.post("/day-status", async (req, res) => {
       res.status(400).json({ message: "status must be active or skipped." });
       return;
     }
+
     if (isFutureMonthDate(date)) {
       res.status(403).json({ message: "Future month is locked until it starts." });
       return;
     }
 
-    const data = sanitize(await readData());
-    data.dayStatus[date] = status;
-    await writeData(data);
-
+    await setDayStatus({ date, status });
     res.status(201).json({ date, status });
   } catch (_error) {
     res.status(500).json({ message: "Failed to save day status." });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`HabitFlow API running on http://localhost:${PORT}`);
-});
+const start = async () => {
+  try {
+    await initDb();
+    app.listen(PORT, () => {
+      console.log(`HabitFlow API running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  }
+};
+
+start();
