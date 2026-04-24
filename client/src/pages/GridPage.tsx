@@ -214,7 +214,7 @@ function GridPage() {
                             className={`h-10 w-10 rounded-xl border text-base font-bold transition ${
                               dayIsSkipped
                                 ? "cursor-not-allowed border-rose-200 bg-rose-100 text-rose-600"
-                                : "border-slate-200 bg-green-500 text-white hover:-translate-y-px hover:border-blue-300 hover:shadow"
+                                : "border-slate-200 bg-white text-slate-500 hover:-translate-y-px hover:border-blue-300 hover:shadow"
                             } ${!dayIsSkipped && status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : ""}`}
                           >
                             {dayIsSkipped ? (
