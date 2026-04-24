@@ -110,11 +110,14 @@ function MonthPage() {
                   {row.completed}/{row.total} days
                 </span>
               </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
-                  style={{ width: `${row.percent}%` }}
-                />
+              <div className="flex items-center gap-3">
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                    style={{ width: `${row.percent}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-slate-600">{row.percent}%</span>
               </div>
             </div>
           ))

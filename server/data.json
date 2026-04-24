@@ -78,9 +78,10 @@
       "habit-exercise": "done"
     },
     "2026-04-07": {
-      "habit-exercise": "done",
+      "habit-exercise": "missed",
       "habit-walking": "missed",
-      "habit-reading": "done"
+      "habit-reading": "done",
+      "habit-1776802138202": "done"
     },
     "2026-04-06": {
       "habit-reading": "missed",
@@ -91,7 +92,8 @@
     "2026-04-13": {
       "habit-exercise": "done",
       "habit-walking": "done",
-      "habit-reading": "done"
+      "habit-reading": "missed",
+      "habit-1776802138202": "done"
     },
     "2026-04-14": {
       "habit-walking": "done",
@@ -120,7 +122,7 @@
     "2026-04-09": {
       "habit-reading": "done",
       "habit-exercise": "done",
-      "habit-1776802138202": "missed"
+      "habit-1776802138202": "done"
     },
     "2026-04-24": {
       "habit-reading": "missed",
@@ -137,12 +139,13 @@
     "2026-04-11": {
       "habit-reading": "done",
       "habit-walking": "done",
-      "habit-exercise": "done"
+      "habit-exercise": "missed",
+      "habit-1776802138202": "done"
     },
     "2026-04-12": {
-      "habit-exercise": "missed",
+      "habit-exercise": "done",
       "habit-1776802138202": "done",
-      "habit-reading": "done",
+      "habit-reading": "missed",
       "habit-walking": "done"
     },
     "2026-06-09": {
