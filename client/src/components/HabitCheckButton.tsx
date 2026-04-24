@@ -19,7 +19,7 @@ function HabitCheckButton({ status, disabled = false, onToggleDone }: HabitCheck
       aria-label="Toggle habit done status"
     >
       {status === "done" ? (
-        <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <svg viewBox="0 0 20 20" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M4 10.5l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ) : (

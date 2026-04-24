@@ -71,7 +71,7 @@ function GridPage() {
 
   return (
     <section className="space-y-6">
-      <div className="glass-panel flex flex-wrap items-center justify-between gap-3 p-5 sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-5 glass-panel sm:p-7">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Grid View</p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{monthLabel(cursor)}</h2>
@@ -93,22 +93,22 @@ function GridPage() {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-        <span className="rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-800">On = counted</span>
-        <span className="rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-800">Skip = excluded</span>
-        <span className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800">Right-click cell for quick actions</span>
+        <span className="px-3 py-1 font-medium rounded-full bg-emerald-100 text-emerald-800">On = counted</span>
+        <span className="px-3 py-1 font-medium rounded-full bg-amber-100 text-amber-800">Skip = excluded</span>
+        <span className="px-3 py-1 font-medium text-blue-800 bg-blue-100 rounded-full">Right-click cell for quick actions</span>
       </div>
       {isFutureMonth ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="px-4 py-3 text-sm border rounded-2xl border-amber-200 bg-amber-50 text-amber-800">
           Future month is view-only. Editing unlocks on {monthStartLabel}.
         </div>
       ) : null}
 
-      <div className="glass-panel overflow-hidden p-2 sm:p-3">
+      <div className="p-2 overflow-hidden glass-panel sm:p-3">
         <div className="overflow-x-auto">
           <table className="min-w-[920px] border-separate border-spacing-0 text-sm">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 min-w-48 border-b border-slate-200 bg-white px-4 py-3 text-left font-semibold text-slate-800">
+                <th className="sticky left-0 z-20 px-4 py-3 font-semibold text-left bg-white border-b min-w-48 border-slate-200 text-slate-800">
                   Day Status
                 </th>
                 {monthDays.map((day) => {
@@ -143,10 +143,10 @@ function GridPage() {
                   Open Day
                 </th>
                 {monthDays.map((day) => (
-                  <th key={`open-${day.iso}`} className="border-b border-slate-200 bg-white px-2 py-2 text-center">
+                  <th key={`open-${day.iso}`} className="px-2 py-2 text-center bg-white border-b border-slate-200">
                     <Link
                       to={`/day/${day.iso}`}
-                      className="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-blue-100 hover:text-blue-700"
+                      className="inline-flex px-2 py-1 text-xs font-medium transition rounded-lg bg-slate-100 text-slate-700 hover:bg-blue-100 hover:text-blue-700"
                     >
                       Open
                     </Link>
@@ -157,7 +157,7 @@ function GridPage() {
             <tbody>
               {habits.length === 0 ? (
                 <tr>
-                  <td className="sticky left-0 z-10 border-b border-slate-100 bg-white px-4 py-6 font-semibold text-slate-900">
+                  <td className="sticky left-0 z-10 px-4 py-6 font-semibold bg-white border-b border-slate-100 text-slate-900">
                     Add habits from Habit Library
                   </td>
                   {monthDays.map((day) => (
@@ -174,7 +174,7 @@ function GridPage() {
               ) : (
                 habits.map((habit) => (
                   <tr key={habit.id} className="align-middle">
-                    <td className="sticky left-0 z-10 border-b border-slate-100 bg-white px-4 py-3 font-semibold text-slate-900">
+                    <td className="sticky left-0 z-10 px-4 py-3 font-semibold bg-white border-b border-slate-100 text-slate-900">
                       {habit.name}
                     </td>
                     {monthDays.map((day) => {
@@ -214,7 +214,7 @@ function GridPage() {
                             {status === "done" ? (
                               <svg
                                 viewBox="0 0 20 20"
-                                className="mx-auto h-4 w-4"
+                                className="w-4 h-4 mx-auto"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2.5"
@@ -236,7 +236,7 @@ function GridPage() {
         </div>
       </div>
 
-      <div className="glass-panel space-y-5 p-5 sm:p-7">
+      <div className="p-5 space-y-5 glass-panel sm:p-7">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
             Monthly Analysis ({monthLabel(cursor)})
@@ -245,22 +245,22 @@ function GridPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-lg shadow-slate-900/20">
+          <div className="px-5 py-4 text-white shadow-lg rounded-2xl bg-slate-900 shadow-slate-900/20">
             <p className="text-xs uppercase tracking-[0.12em] text-slate-300">Consistency</p>
             <p className="mt-2 text-3xl font-bold">{consistency}%</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+          <div className="px-5 py-4 bg-white border rounded-2xl border-slate-200/70">
             <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Active Days</p>
             <p className="mt-2 text-3xl font-bold text-slate-900">{activeDays.length}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200/70 bg-white px-5 py-4">
+          <div className="px-5 py-4 bg-white border rounded-2xl border-slate-200/70">
             <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Skipped Days</p>
             <p className="mt-2 text-3xl font-bold text-slate-900">{skippedDays}</p>
           </div>
         </div>
 
         {perHabit.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
+          <div className="p-8 text-center border border-dashed rounded-2xl border-slate-300 bg-white/70">
             <p className="text-base font-semibold text-slate-700">No habits to analyze</p>
             <p className="mt-1 text-sm text-slate-500">Add habits in Habit Library to see month insights.</p>
           </div>
@@ -269,9 +269,9 @@ function GridPage() {
             {perHabit.map((row) => (
               <div
                 key={row.habit.id}
-                className="rounded-2xl border border-slate-200/70 bg-white/80 p-4"
+                className="p-4 border rounded-2xl border-slate-200/70 bg-white/80"
               >
-                <div className="mb-2 flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between mb-2 text-sm">
                   <span className="font-semibold text-slate-800">{row.habit.name}</span>
                   <span className="text-slate-500">
                     {row.completed}/{row.total} active days
@@ -279,7 +279,7 @@ function GridPage() {
                 </div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-300"
+                    className="h-full transition-all duration-300 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
                     style={{ width: `${row.percent}%` }}
                   />
                 </div>
@@ -295,13 +295,13 @@ function GridPage() {
           style={{ top: menu.y + 8, left: menu.x + 8 }}
         >
           <button
-            className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="block w-full px-3 py-2 text-sm font-medium text-left rounded-xl text-slate-700 hover:bg-slate-100"
             onClick={() => applyStatus("done")}
           >
             Mark Done
           </button>
           <button
-            className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="block w-full px-3 py-2 text-sm font-medium text-left rounded-xl text-slate-700 hover:bg-slate-100"
             onClick={() => applyStatus("missed")}
           >
             Mark Missed
