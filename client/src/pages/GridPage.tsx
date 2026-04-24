@@ -170,7 +170,7 @@ function GridPage() {
                     <td
                       key={`empty-${day.iso}`}
                       className={`border-b border-slate-100 px-2 py-6 text-center text-slate-400 ${
-                        (dayStatus[day.iso] || "active") === "skipped" ? "column-skipped" : "bg-white"
+                        (dayStatus[day.iso] || "active") === "skipped" ? "column-skipped" : "bg-green-700"
                       }`}
                     >
                       -
@@ -288,7 +288,7 @@ function GridPage() {
                 <div className="flex items-center gap-3">
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400 transition-all duration-300"
+                      className="h-full transition-all duration-300 rounded-full bg-gradient-to-r from-emerald-500 to-green-400"
                       style={{ width: `${row.percent}%` }}
                     />
                   </div>
