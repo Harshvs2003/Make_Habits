@@ -47,3 +47,29 @@ export function getMonthDays(cursor: Date) {
 export function isIsoDate(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
+
+export function canEditDate(isoDate: string, now = new Date()) {
+  if (!isIsoDate(isoDate)) {
+    return false;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const target = new Date(year, month - 1, day);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const sameMonth =
+    target.getFullYear() === today.getFullYear() && target.getMonth() === today.getMonth();
+
+  if (!sameMonth) {
+    return false;
+  }
+
+  if (target > today) {
+    return false;
+  }
+
+  const editableUntil = new Date(target);
+  editableUntil.setDate(editableUntil.getDate() + 1);
+
+  return today <= editableUntil;
+}

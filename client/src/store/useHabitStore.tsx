@@ -1,5 +1,6 @@
 ﻿import { create } from "zustand";
 import { api } from "../lib/api.tsx";
+import { canEditDate } from "../lib/date.tsx";
 
 export type Habit = {
   id: string;
@@ -97,6 +98,14 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
   },
 
   setEntry: async (date, habitId, status) => {
+    if (!canEditDate(date)) {
+      set({
+        saving: false,
+        error: "This date is locked. You can edit only today or yesterday in the current month.",
+      });
+      return;
+    }
+
     const previous = get().entries;
 
     set((state) => ({
@@ -124,6 +133,14 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
   },
 
   setDayStatus: async (date, status) => {
+    if (!canEditDate(date)) {
+      set({
+        saving: false,
+        error: "This date is locked. You can edit only today or yesterday in the current month.",
+      });
+      return;
+    }
+
     const previous = get().dayStatus;
 
     set((state) => ({

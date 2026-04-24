@@ -1,7 +1,7 @@
 ﻿import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import LoadingState from "../components/LoadingState.tsx";
-import { getMonthDays, monthLabel } from "../lib/date.tsx";
+import { canEditDate, getMonthDays, monthLabel } from "../lib/date.tsx";
 import { useHabitStore, type EntryStatus } from "../store/useHabitStore.tsx";
 
 type MenuState = {
@@ -61,7 +61,7 @@ function GridPage() {
   }
 
   const applyStatus = (entryStatus: EntryStatus) => {
-    if (!menu || isFutureMonth) {
+    if (!menu || isFutureMonth || !canEditDate(menu.date)) {
       return;
     }
 
@@ -114,6 +114,7 @@ function GridPage() {
                 {monthDays.map((day) => {
                   const status = dayStatus[day.iso] || "active";
                   const skipped = status === "skipped";
+                  const dayIsEditable = canEditDate(day.iso);
 
                   return (
                     <th
@@ -123,13 +124,18 @@ function GridPage() {
                       }`}
                     >
                       <button
-                        disabled={isFutureMonth}
-                        onClick={() => void setDayStatus(day.iso, skipped ? "active" : "skipped")}
+                        disabled={isFutureMonth || !dayIsEditable}
+                        onClick={() => {
+                          if (!dayIsEditable) {
+                            return;
+                          }
+                          void setDayStatus(day.iso, skipped ? "active" : "skipped");
+                        }}
                         className={`w-full rounded-xl px-2 py-2 transition ${
                           skipped
                             ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
                             : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                        } ${isFutureMonth ? "cursor-not-allowed opacity-55 hover:bg-inherit" : ""}`}
+                        } ${isFutureMonth || !dayIsEditable ? "cursor-not-allowed opacity-55 hover:bg-inherit" : ""}`}
                       >
                         <div className="font-semibold">{day.dayNumber}</div>
                         <div className="text-[11px] uppercase tracking-wide">{skipped ? "Skip" : "On"}</div>
@@ -179,6 +185,7 @@ function GridPage() {
                     </td>
                     {monthDays.map((day) => {
                       const dayIsSkipped = (dayStatus[day.iso] || "active") === "skipped";
+                      const dayIsEditable = canEditDate(day.iso);
                       const status = entries[day.iso]?.[habit.id] ?? "missed";
 
                       return (
@@ -189,11 +196,11 @@ function GridPage() {
                           }`}
                         >
                           <button
-                            disabled={dayIsSkipped || isFutureMonth}
+                            disabled={dayIsSkipped || isFutureMonth || !dayIsEditable}
                             onClick={() => void setEntry(day.iso, habit.id, status === "done" ? "missed" : "done")}
                             onContextMenu={(event) => {
                               event.preventDefault();
-                              if (dayIsSkipped || isFutureMonth) {
+                              if (dayIsSkipped || isFutureMonth || !dayIsEditable) {
                                 return;
                               }
 

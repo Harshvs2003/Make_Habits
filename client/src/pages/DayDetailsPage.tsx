@@ -2,7 +2,7 @@
 import DayStatusToggle from "../components/DayStatusToggle.tsx";
 import HabitCheckButton from "../components/HabitCheckButton.tsx";
 import LoadingState from "../components/LoadingState.tsx";
-import { isIsoDate, readableDate } from "../lib/date.tsx";
+import { canEditDate, isIsoDate, readableDate } from "../lib/date.tsx";
 import { useHabitStore } from "../store/useHabitStore.tsx";
 
 function DayDetailsPage() {
@@ -26,10 +26,7 @@ function DayDetailsPage() {
 
   const currentDayStatus = dayStatus[date] || "active";
   const dayEntries = entries[date] || {};
-  const [year, month] = date.split("-").map(Number);
-  const now = new Date();
-  const isFutureMonth =
-    year > now.getFullYear() || (year === now.getFullYear() && month - 1 > now.getMonth());
+  const isDateEditable = canEditDate(date);
 
   return (
     <section className="space-y-6">
@@ -47,16 +44,16 @@ function DayDetailsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white/70 p-4">
           <div>
             <p className="text-sm font-semibold text-slate-800">Whole-day control</p>
-            <p className="text-xs text-slate-500">
-              {isFutureMonth
-                ? "This month has not started yet. Day changes are locked."
+              <p className="text-xs text-slate-500">
+              {!isDateEditable
+                ? "This date is locked. You can edit only today or yesterday in the current month."
                 : "Skip the whole day to avoid guilt-based streak breaks."}
             </p>
           </div>
           <DayStatusToggle
             value={currentDayStatus}
             onChange={(value) => void setDayStatus(date, value)}
-            disabled={isFutureMonth}
+            disabled={!isDateEditable}
           />
         </div>
       </div>
@@ -84,7 +81,7 @@ function DayDetailsPage() {
                   </p>
                 </div>
                 <HabitCheckButton
-                  disabled={currentDayStatus === "skipped" || isFutureMonth}
+                  disabled={currentDayStatus === "skipped" || !isDateEditable}
                   status={status}
                   onToggleDone={() => void setEntry(date, habit.id, status === "done" ? "missed" : "done")}
                 />
