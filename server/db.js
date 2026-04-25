@@ -22,11 +22,37 @@ const DEFAULT_SUBSCRIPTION = {
   adsEnabled: true,
 };
 
+const keyPatternEquals = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+const dropLegacyUniqueIndexes = async (collection, legacyKeyPatterns) => {
+  const indexes = await collection.indexes();
+
+  for (const index of indexes) {
+    if (!index?.name || index.name === "_id_" || !index.unique) {
+      continue;
+    }
+
+    const isLegacy = legacyKeyPatterns.some((pattern) => keyPatternEquals(index.key, pattern));
+    if (!isLegacy) {
+      continue;
+    }
+
+    await collection.dropIndex(index.name);
+  }
+};
+
 const initDb = async () => {
   if (!db) {
     await client.connect();
     db = client.db(dbName);
   }
+
+  await Promise.all([
+    // Pre-multi-user schema legacy unique indexes that cause cross-user collisions.
+    dropLegacyUniqueIndexes(habitsCollection(), [{ id: 1 }, { normalizedName: 1 }]),
+    dropLegacyUniqueIndexes(entriesCollection(), [{ date: 1 }]),
+    dropLegacyUniqueIndexes(dayStatusCollection(), [{ date: 1 }]),
+  ]);
 
   await Promise.all([
     habitsCollection().createIndex({ uid: 1, id: 1 }, { unique: true }),
