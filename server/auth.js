@@ -44,7 +44,7 @@ const getAuthErrorMessage = (error) => {
     code === "auth/invalid-id-token" ||
     code === "auth/id-token-revoked"
   ) {
-    return "Invalid auth token.";
+    return "Invalid auth token. Ensure frontend and backend use the same Firebase project.";
   }
 
   if (code === "auth/user-disabled") {

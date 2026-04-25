@@ -80,12 +80,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           error: "",
         });
       } catch (error) {
+        await signOut(auth).catch(() => undefined);
         set({
-          user: mapFirebaseUser(firebaseUser),
+          user: null,
           subscription: null,
           loading: false,
           ready: true,
-          error: error instanceof Error ? error.message : "Failed to initialize auth.",
+          error:
+            error instanceof Error
+              ? `${error.message} Verify frontend and backend are using the same Firebase project.`
+              : "Failed to initialize auth. Verify Firebase project configuration.",
         });
       }
     });
