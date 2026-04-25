@@ -22,7 +22,7 @@ function HabitCheckButton({
         disabled
           ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
           : "cursor-pointer border-blue-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow active:translate-y-0"
-      } ${status === "done" ? "animate-pulseScale border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-600/30" : ""}`}
+      } ${status === "done" ? "animate-pulseScale border-emerald-600 bg-emerald-100 text-emerald-700 shadow-lg shadow-emerald-600/20" : ""}`}
       aria-label="Toggle habit done status"
     >
       {status === "done" ? (
