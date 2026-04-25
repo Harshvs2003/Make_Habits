@@ -88,6 +88,13 @@ const getRazorpayErrorDetail = (error) => {
   return "";
 };
 
+const buildShortReceipt = (uid) => {
+  const uidHash = crypto.createHash("sha1").update(uid).digest("hex").slice(0, 12);
+  const timestampBase36 = Date.now().toString(36);
+  // Keep comfortably below Razorpay 40-char receipt limit.
+  return `rcpt_${uidHash}_${timestampBase36}`;
+};
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -326,7 +333,7 @@ app.post("/billing/create-order", async (req, res) => {
     const order = await razorpay.orders.create({
       amount: amountInPaise,
       currency: razorpayCurrency,
-      receipt: `receipt_${req.user.uid}_${Date.now()}`,
+      receipt: buildShortReceipt(req.user.uid),
       notes: {
         uid: req.user.uid,
         plan,
