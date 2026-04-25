@@ -1,5 +1,6 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import LoadingState from "../components/LoadingState.tsx";
 import { getMonthDays, monthLabel } from "../lib/date.tsx";
 import { useHabitStore } from "../store/useHabitStore.tsx";
@@ -35,6 +36,64 @@ function MonthPage() {
     const totalPossible = perHabit.reduce((sum, row) => sum + row.total, 0);
     return totalPossible ? Math.round((totalDone / totalPossible) * 100) : 0;
   }, [perHabit]);
+
+  const monthlyTrendData = useMemo(() => {
+    if (habits.length === 0) return [];
+
+    const entryDates = Object.keys(entries);
+    if (entryDates.length === 0) return [];
+
+    const monthKeys = entryDates
+      .map((date) => date.slice(0, 7))
+      .filter((monthKey) => /^\d{4}-\d{2}$/.test(monthKey));
+
+    if (monthKeys.length === 0) return [];
+
+    const earliestMonth = monthKeys.slice().sort()[0];
+    const [startYear, startMonth] = earliestMonth.split("-").map(Number);
+    if (!startYear || !startMonth) return [];
+
+    const now = new Date();
+    const endYear = now.getFullYear();
+    const endMonth = now.getMonth() + 1;
+
+    const result: { month: string; value: number }[] = [];
+    let year = startYear;
+    let month = startMonth;
+
+    while (year < endYear || (year === endYear && month <= endMonth)) {
+      const monthDate = new Date(year, month - 1, 1);
+      const monthDays = getMonthDays(monthDate);
+      const activeMonthDays = monthDays.filter((day) => (dayStatus[day.iso] || "active") === "active");
+
+      const total = activeMonthDays.length * habits.length;
+      let completed = 0;
+
+      if (total > 0) {
+        activeMonthDays.forEach((day) => {
+          habits.forEach((habit) => {
+            if (entries[day.iso]?.[habit.id] === "done") {
+              completed += 1;
+            }
+          });
+        });
+      }
+
+      const value = total ? Math.round((completed / total) * 100) : 0;
+      result.push({
+        month: monthDate.toLocaleString("en-US", { month: "short" }),
+        value,
+      });
+
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+
+    return result;
+  }, [entries, dayStatus, habits]);
 
   const topHabit = useMemo(
     () => perHabit.slice().sort((a, b) => b.percent - a.percent)[0],
@@ -141,8 +200,33 @@ function MonthPage() {
           ))}
         </div>
       </div>
+
+      <div className="glass-panel space-y-5 p-5 sm:p-7">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Yearly Progress Trend</h3>
+
+        {monthlyTrendData.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
+            <p className="text-base font-semibold text-slate-700">No yearly trend data yet</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Start tracking habits to see monthly consistency over time.
+            </p>
+          </div>
+        ) : (
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyTrendData}>
+                <XAxis dataKey="month" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip formatter={(value) => `${value ?? 0}% consistency`} />
+                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
 
 export default MonthPage;
+
