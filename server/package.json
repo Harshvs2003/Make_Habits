@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "habitflow-server",
   "version": "1.0.0",
   "private": true,
@@ -12,6 +12,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
-    "mongodb": "^6.21.0"
+    "firebase-admin": "^13.8.0",
+    "mongodb": "^6.21.0",
+    "razorpay": "^2.9.6"
   }
 }

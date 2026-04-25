@@ -15,12 +15,15 @@ const localFallbacks = (() => {
   return [`http://${host}:5000`, `http://${host}:4000`];
 })();
 
-const candidateBases = [
-  rawApiBase || "",
-  ...localFallbacks,
-].filter(Boolean).map(normalizeBase);
+const candidateBases = [rawApiBase || "", ...localFallbacks].filter(Boolean).map(normalizeBase);
 
 const uniqueCandidateBases = Array.from(new Set(candidateBases));
+
+let authToken = "";
+
+export const setApiAuthToken = (token: string) => {
+  authToken = token.trim();
+};
 
 async function request(path: string, init?: RequestInit) {
   let lastError: Error | null = null;
@@ -30,6 +33,7 @@ async function request(path: string, init?: RequestInit) {
       const response = await fetch(`${base}${path}`, {
         headers: {
           "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
           ...(init?.headers || {}),
         },
         ...init,
@@ -49,6 +53,13 @@ async function request(path: string, init?: RequestInit) {
   const baseHint = uniqueCandidateBases.join(", ") || "(no API base configured)";
   throw new Error(`Failed to fetch from API. Tried: ${baseHint}. ${lastError?.message || ""}`.trim());
 }
+
+export type Subscription = {
+  plan: "free" | "pro" | "premium";
+  status: string;
+  habitLimit: number | null;
+  adsEnabled: boolean;
+};
 
 export const api = {
   getHabits: () => request("/habits"),
@@ -72,5 +83,22 @@ export const api = {
     request("/day-status", {
       method: "POST",
       body: JSON.stringify({ date, status }),
+    }),
+  getMe: () => request("/auth/me"),
+  getPlans: () => request("/plans"),
+  createBillingOrder: (plan: "pro" | "premium") =>
+    request("/billing/create-order", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    }),
+  verifyBillingPayment: (payload: {
+    plan: "pro" | "premium";
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) =>
+    request("/billing/verify-payment", {
+      method: "POST",
+      body: JSON.stringify(payload),
     }),
 };

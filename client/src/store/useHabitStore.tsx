@@ -19,6 +19,7 @@ type HabitStore = {
   saving: boolean;
   error: string;
   hydrate: () => Promise<void>;
+  clearData: () => void;
   addHabit: (name: string) => Promise<void>;
   deleteHabit: (id: string) => Promise<void>;
   setEntry: (date: string, habitId: string, status: EntryStatus) => Promise<void>;
@@ -49,6 +50,10 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         error: error instanceof Error ? error.message : "Failed to load data.",
       });
     }
+  },
+
+  clearData: () => {
+    set({ habits: [], entries: {}, dayStatus: {}, loading: false, saving: false, error: "" });
   },
 
   addHabit: async (name) => {

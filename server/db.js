@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+﻿const { MongoClient } = require("mongodb");
 
 const mongoUri = (process.env.MONGODB_URI || "").trim();
 const dbName = (process.env.MONGODB_DB_NAME || "habitflow").trim();
@@ -13,6 +13,14 @@ let db;
 const habitsCollection = () => db.collection("habits");
 const entriesCollection = () => db.collection("entries");
 const dayStatusCollection = () => db.collection("day_status");
+const subscriptionsCollection = () => db.collection("subscriptions");
+
+const DEFAULT_SUBSCRIPTION = {
+  plan: "free",
+  status: "active",
+  habitLimit: 5,
+  adsEnabled: true,
+};
 
 const initDb = async () => {
   if (!db) {
@@ -21,16 +29,17 @@ const initDb = async () => {
   }
 
   await Promise.all([
-    habitsCollection().createIndex({ id: 1 }, { unique: true }),
-    habitsCollection().createIndex({ normalizedName: 1 }, { unique: true }),
-    entriesCollection().createIndex({ date: 1 }, { unique: true }),
-    dayStatusCollection().createIndex({ date: 1 }, { unique: true }),
+    habitsCollection().createIndex({ uid: 1, id: 1 }, { unique: true }),
+    habitsCollection().createIndex({ uid: 1, normalizedName: 1 }, { unique: true }),
+    entriesCollection().createIndex({ uid: 1, date: 1 }, { unique: true }),
+    dayStatusCollection().createIndex({ uid: 1, date: 1 }, { unique: true }),
+    subscriptionsCollection().createIndex({ uid: 1 }, { unique: true }),
   ]);
 };
 
-const getHabits = async () => {
+const getHabits = async (uid) => {
   const docs = await habitsCollection()
-    .find({})
+    .find({ uid })
     .sort({ createdAt: 1 })
     .project({ _id: 0, id: 1, name: 1, createdAt: 1 })
     .toArray();
@@ -38,8 +47,11 @@ const getHabits = async () => {
   return docs;
 };
 
-const createHabit = async (habit) => {
+const countHabits = async (uid) => habitsCollection().countDocuments({ uid });
+
+const createHabit = async (uid, habit) => {
   const doc = {
+    uid,
     id: habit.id,
     name: habit.name,
     normalizedName: habit.name.toLowerCase(),
@@ -55,24 +67,24 @@ const createHabit = async (habit) => {
   };
 };
 
-const deleteHabit = async (id) => {
-  const result = await habitsCollection().deleteOne({ id });
+const deleteHabit = async (uid, id) => {
+  const result = await habitsCollection().deleteOne({ uid, id });
 
   if (result.deletedCount > 0) {
-    await entriesCollection().updateMany({}, { $unset: { [`values.${id}`]: "" } });
+    await entriesCollection().updateMany({ uid }, { $unset: { [`values.${id}`]: "" } });
   }
 
   return result.deletedCount > 0;
 };
 
-const habitExists = async (id) => {
-  const doc = await habitsCollection().findOne({ id }, { projection: { _id: 1 } });
+const habitExists = async (uid, id) => {
+  const doc = await habitsCollection().findOne({ uid, id }, { projection: { _id: 1 } });
   return !!doc;
 };
 
-const getEntries = async () => {
+const getEntries = async (uid) => {
   const docs = await entriesCollection()
-    .find({})
+    .find({ uid })
     .project({ _id: 0, date: 1, values: 1 })
     .toArray();
 
@@ -82,25 +94,25 @@ const getEntries = async () => {
   }, {});
 };
 
-const setEntry = async ({ date, habitId, status }) => {
+const setEntry = async (uid, { date, habitId, status }) => {
   await entriesCollection().updateOne(
-    { date },
+    { uid, date },
     { $set: { [`values.${habitId}`]: status } },
     { upsert: true }
   );
 };
 
-const getDayStatusForDate = async (date) => {
+const getDayStatusForDate = async (uid, date) => {
   const doc = await dayStatusCollection().findOne(
-    { date },
+    { uid, date },
     { projection: { _id: 0, status: 1 } }
   );
   return doc?.status || "active";
 };
 
-const getAllDayStatus = async () => {
+const getAllDayStatus = async (uid) => {
   const docs = await dayStatusCollection()
-    .find({})
+    .find({ uid })
     .project({ _id: 0, date: 1, status: 1 })
     .toArray();
 
@@ -110,17 +122,67 @@ const getAllDayStatus = async () => {
   }, {});
 };
 
-const setDayStatus = async ({ date, status }) => {
+const setDayStatus = async (uid, { date, status }) => {
   await dayStatusCollection().updateOne(
-    { date },
+    { uid, date },
     { $set: { status } },
     { upsert: true }
   );
 };
 
+const getSubscription = async (uid) => {
+  const existing = await subscriptionsCollection().findOne(
+    { uid },
+    { projection: { _id: 0, uid: 0 } }
+  );
+
+  if (existing) {
+    return {
+      ...DEFAULT_SUBSCRIPTION,
+      ...existing,
+    };
+  }
+
+  await subscriptionsCollection().updateOne(
+    { uid },
+    {
+      $setOnInsert: {
+        uid,
+        ...DEFAULT_SUBSCRIPTION,
+        createdAt: new Date().toISOString(),
+      },
+    },
+    { upsert: true }
+  );
+
+  return { ...DEFAULT_SUBSCRIPTION };
+};
+
+const upsertSubscription = async (uid, data) => {
+  const next = {
+    ...data,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await subscriptionsCollection().updateOne(
+    { uid },
+    {
+      $set: next,
+      $setOnInsert: {
+        uid,
+        createdAt: new Date().toISOString(),
+      },
+    },
+    { upsert: true }
+  );
+
+  return getSubscription(uid);
+};
+
 module.exports = {
   initDb,
   getHabits,
+  countHabits,
   createHabit,
   deleteHabit,
   habitExists,
@@ -129,4 +191,6 @@ module.exports = {
   getDayStatusForDate,
   getAllDayStatus,
   setDayStatus,
+  getSubscription,
+  upsertSubscription,
 };

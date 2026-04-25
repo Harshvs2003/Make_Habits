@@ -1,4 +1,4 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 const fs = require("fs/promises");
 const path = require("path");
 const {
@@ -11,6 +11,7 @@ const {
 const DATA_FILE = path.join(__dirname, "data.json");
 const isEntryStatus = (value) => ["done", "skipped", "missed"].includes(value);
 const isDayStatus = (value) => ["active", "skipped"].includes(value);
+const migrationUid = (process.env.MIGRATION_UID || "legacy-import-user").trim();
 
 const run = async () => {
   await initDb();
@@ -34,7 +35,7 @@ const run = async () => {
     }
 
     try {
-      await createHabit({
+      await createHabit(migrationUid, {
         id: habit.id,
         name: habit.name,
         createdAt: habit.createdAt || new Date().toISOString(),
@@ -56,7 +57,7 @@ const run = async () => {
       if (!habitId || !isEntryStatus(status)) {
         continue;
       }
-      await setEntry({ date, habitId, status });
+      await setEntry(migrationUid, { date, habitId, status });
     }
   }
 
@@ -64,10 +65,10 @@ const run = async () => {
     if (!isDayStatus(status)) {
       continue;
     }
-    await setDayStatus({ date, status });
+    await setDayStatus(migrationUid, { date, status });
   }
 
-  console.log("Migration complete: data.json -> MongoDB");
+  console.log(`Migration complete for uid ${migrationUid}: data.json -> MongoDB`);
 };
 
 run().catch((error) => {

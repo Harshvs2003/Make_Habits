@@ -3,15 +3,15 @@
 ## Local setup
 
 ### 1) Server env
-Copy `server/.env.example` to `server/.env`.
+Copy `server/.env.example` to `server/.env` and fill values.
 
 ### 2) Client env
-Copy `client/.env.example` to `client/.env`.
+Copy `client/.env.example` to `client/.env` and fill values.
 
 ### 3) Start MongoDB
 Run MongoDB locally (or use MongoDB Atlas) and set `MONGODB_URI` in `server/.env`.
 
-### 4) Run app
+### 4) Install and run
 ```bash
 cd server
 npm install
@@ -24,26 +24,46 @@ npm install
 npm run dev
 ```
 
-### Optional: import old `data.json` into MongoDB
+## Auth and billing envs
+
+### Server
+- `PORT`
+- `CLIENT_ORIGIN`
+- `MONGODB_URI`
+- `MONGODB_DB_NAME`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_CURRENCY` (default `INR`)
+- `RAZORPAY_PRO_AMOUNT_INR`
+- `RAZORPAY_PREMIUM_AMOUNT_INR`
+
+### Client
+- `VITE_API_BASE`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_APP_ID`
+
+## Behavior implemented
+- Google sign-in via Firebase Auth.
+- API requests require Firebase ID token.
+- MongoDB data is private per user (`uid` scoped): habits, entries, day status.
+- Plan system: `free`, `pro`, `premium`.
+- Free plan habit cap enforced on backend (5 habits).
+- Razorpay order creation + payment signature verification.
+- Pricing page in client for upgrades.
+
+## Optional: import old `data.json` into MongoDB
 ```bash
 cd server
 npm run migrate:json
 ```
-
-## Deployment envs
-
-### Render (server)
-Set these in Render service environment variables:
-- `PORT` (Render usually injects this automatically)
-- `CLIENT_ORIGIN=https://your-vercel-domain.vercel.app`
-- `MONGODB_URI=mongodb+srv://...` (Atlas recommended)
-- `MONGODB_DB_NAME=habitflow`
-
-### Vercel (client)
-Set this in Vercel project environment variables:
-- `VITE_API_BASE=https://your-render-service.onrender.com`
+Uses `MIGRATION_UID` from server env.
 
 ## Notes
 - Backend supports multiple client origins via comma-separated `CLIENT_ORIGIN`.
 - If `CLIENT_ORIGIN` is blank, CORS allows all origins.
-- Backend now uses MongoDB for persistent data (`habits`, `entries`, `day_status`).
+- Plans and prices are controlled on server env variables.

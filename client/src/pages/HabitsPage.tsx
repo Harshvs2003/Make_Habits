@@ -1,14 +1,20 @@
 ﻿import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import LoadingState from "../components/LoadingState.tsx";
 import { useHabitStore } from "../store/useHabitStore.tsx";
+import { useAuthStore } from "../store/useAuthStore.tsx";
 
 function HabitsPage() {
   const [habitName, setHabitName] = useState("");
   const { habits, loading, saving, error, addHabit, deleteHabit } = useHabitStore();
+  const subscription = useAuthStore((state) => state.subscription);
+
+  const habitLimit = subscription?.habitLimit ?? 5;
+  const atLimit = typeof habitLimit === "number" && habits.length >= habitLimit;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!habitName.trim()) {
+    if (!habitName.trim() || atLimit) {
       return;
     }
 
@@ -27,6 +33,9 @@ function HabitsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Habit Library</p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Manage Habits</h2>
           <p className="mt-1 text-sm text-slate-500">Create and maintain your master habit list in one place.</p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+            Plan limit: {habitLimit ?? "Unlimited"} habits
+          </p>
         </div>
 
         <form className="flex flex-col gap-2 sm:flex-row" onSubmit={handleSubmit}>
@@ -36,11 +45,19 @@ function HabitsPage() {
             onChange={(event) => setHabitName(event.target.value)}
             placeholder="Add a new habit"
             className="input-premium"
+            disabled={atLimit}
           />
-          <button type="submit" className="primary-button sm:min-w-28">
+          <button type="submit" className="primary-button sm:min-w-28" disabled={atLimit}>
             Add Habit
           </button>
         </form>
+
+        {atLimit ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            You reached your free plan limit. <Link to="/pricing" className="font-semibold underline">Upgrade plan</Link> to add more habits.
+          </div>
+        ) : null}
+
         {saving ? <p className="text-xs text-slate-500">Saving changes...</p> : null}
         {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
       </div>
