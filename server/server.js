@@ -80,6 +80,14 @@ const isFutureMonthDate = (value) => {
   return year > now.getFullYear() || (year === now.getFullYear() && month - 1 > now.getMonth());
 };
 
+const getRazorpayErrorDetail = (error) => {
+  if (!error) return "";
+  const apiDescription = error?.error?.description || error?.description;
+  if (apiDescription) return String(apiDescription);
+  if (error?.message) return String(error.message);
+  return "";
+};
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -332,8 +340,14 @@ app.post("/billing/create-order", async (req, res) => {
       keyId: razorpayKeyId,
       plan,
     });
-  } catch (_error) {
-    res.status(500).json({ message: "Failed to create payment order." });
+  } catch (error) {
+    const detail = getRazorpayErrorDetail(error);
+    console.error("Razorpay order creation failed:", detail || error);
+    res.status(500).json({
+      message: detail
+        ? `Failed to create payment order. ${detail}`
+        : "Failed to create payment order.",
+    });
   }
 });
 
@@ -370,8 +384,14 @@ app.post("/billing/verify-payment", async (req, res) => {
     });
 
     res.json({ success: true, subscription });
-  } catch (_error) {
-    res.status(500).json({ message: "Failed to verify payment." });
+  } catch (error) {
+    const detail = getRazorpayErrorDetail(error);
+    console.error("Razorpay payment verification failed:", detail || error);
+    res.status(500).json({
+      message: detail
+        ? `Failed to verify payment. ${detail}`
+        : "Failed to verify payment.",
+    });
   }
 });
 
