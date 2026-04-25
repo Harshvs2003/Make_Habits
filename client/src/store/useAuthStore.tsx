@@ -5,7 +5,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { api, setApiAuthToken, type Subscription } from "../lib/api.tsx";
+import { api, type Subscription } from "../lib/api.tsx";
 import { auth, googleProvider } from "../lib/firebase.ts";
 
 type AppUser = {
@@ -67,13 +67,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     onIdTokenChanged(auth, async (firebaseUser) => {
       try {
         if (!firebaseUser) {
-          setApiAuthToken("");
           set({ user: null, subscription: null, loading: false, ready: true });
           return;
         }
-
-        const token = await firebaseUser.getIdToken();
-        setApiAuthToken(token);
 
         const profile = await api.getMe();
         set({
@@ -84,7 +80,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           error: "",
         });
       } catch (error) {
-        setApiAuthToken("");
         set({
           user: mapFirebaseUser(firebaseUser),
           subscription: null,
@@ -112,7 +107,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ loading: true, error: "" });
     try {
       await signOut(auth);
-      setApiAuthToken("");
       set({ user: null, subscription: null, loading: false, error: "" });
     } catch (error) {
       set({

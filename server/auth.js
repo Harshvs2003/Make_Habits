@@ -24,19 +24,49 @@ const ensureFirebaseConfigured = () => {
   }
 };
 
+const parseBearerToken = (authorizationHeader = "") => {
+  const [scheme, token] = authorizationHeader.trim().split(" ");
+  if (!scheme || scheme.toLowerCase() !== "bearer" || !token) {
+    return "";
+  }
+  return token.trim();
+};
+
+const getAuthErrorMessage = (error) => {
+  const code = error?.code || "";
+
+  if (code === "auth/id-token-expired") {
+    return "Auth token expired. Please sign in again.";
+  }
+
+  if (
+    code === "auth/argument-error" ||
+    code === "auth/invalid-id-token" ||
+    code === "auth/id-token-revoked"
+  ) {
+    return "Invalid auth token.";
+  }
+
+  if (code === "auth/user-disabled") {
+    return "This Firebase user account is disabled.";
+  }
+
+  return "Unauthorized.";
+};
+
 const requireAuth = async (req, res, next) => {
   try {
     ensureFirebaseConfigured();
 
     const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const token = parseBearerToken(authHeader);
 
     if (!token) {
       res.status(401).json({ message: "Missing auth token." });
       return;
     }
 
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifyIdToken(token, true);
 
     req.user = {
       uid: decoded.uid,
@@ -46,8 +76,8 @@ const requireAuth = async (req, res, next) => {
     };
 
     next();
-  } catch (_error) {
-    res.status(401).json({ message: "Unauthorized." });
+  } catch (error) {
+    res.status(401).json({ message: getAuthErrorMessage(error) });
   }
 };
 

@@ -23,17 +23,10 @@ const { getPlanConfig, buildSubscriptionFromPlan, publicPlans } = require("./pla
 
 const PORT = process.env.PORT || 4000;
 const normalizeOrigin = (origin) => origin.replace(/\/$/, "");
-const clientOrigins = (process.env.CLIENT_ORIGIN || "")
+const clientOrigins = (process.env.CLIENT_ORIGIN || "https://habitflow.hvslabs.online")
   .split(",")
   .map((origin) => normalizeOrigin(origin.trim()))
   .filter(Boolean);
-const exactClientOrigins = clientOrigins.filter((origin) => !origin.includes("*"));
-const wildcardClientOriginPatterns = clientOrigins
-  .filter((origin) => origin.includes("*"))
-  .map((origin) => {
-    const escaped = origin.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
-    return new RegExp(`^${escaped}$`);
-  });
 
 const razorpayKeyId = (process.env.RAZORPAY_KEY_ID || "").trim();
 const razorpayKeySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
@@ -48,27 +41,9 @@ const razorpay = razorpayEnabled
 
 const app = express();
 
-const isLocalhostOrigin = (origin) => {
-  try {
-    const parsed = new URL(origin);
-    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
-  } catch (_error) {
-    return false;
-  }
-};
-
 const isAllowedClientOrigin = (origin) => {
-  if (!origin) {
-    return true;
-  }
-
-  const normalizedOrigin = normalizeOrigin(origin);
-
-  if (exactClientOrigins.includes(normalizedOrigin)) {
-    return true;
-  }
-
-  return wildcardClientOriginPatterns.some((pattern) => pattern.test(normalizedOrigin));
+  const normalizedOrigin = normalizeOrigin(origin || "");
+  return clientOrigins.includes(normalizedOrigin);
 };
 
 const isIsoDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -97,21 +72,23 @@ const buildShortReceipt = (uid) => {
 
 app.use(
   cors({
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Authorization", "Content-Type"],
     origin(origin, callback) {
-      const allowAllConfigured = clientOrigins.length === 0;
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
 
-      if (
-        !origin ||
-        allowAllConfigured ||
-        isAllowedClientOrigin(origin) ||
-        isLocalhostOrigin(origin)
-      ) {
+      if (isAllowedClientOrigin(origin)) {
         callback(null, true);
         return;
       }
 
       callback(new Error(`CORS blocked: origin not allowed (${origin})`));
     },
+    optionsSuccessStatus: 204,
   })
 );
 app.use(express.json());

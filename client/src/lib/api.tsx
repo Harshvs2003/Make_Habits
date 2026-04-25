@@ -1,4 +1,6 @@
-﻿const rawApiBase = (import.meta.env.VITE_API_BASE || "").trim();
+﻿import { auth } from "./firebase.ts";
+
+const rawApiBase = (import.meta.env.VITE_API_BASE || "").trim();
 
 const normalizeBase = (value: string) => value.replace(/\/$/, "");
 
@@ -16,32 +18,78 @@ const localFallbacks = (() => {
 })();
 
 const candidateBases = [rawApiBase || "", ...localFallbacks].filter(Boolean).map(normalizeBase);
-
 const uniqueCandidateBases = Array.from(new Set(candidateBases));
 
-let authToken = "";
+class ApiError extends Error {
+  status: number;
+  code: string;
 
-export const setApiAuthToken = (token: string) => {
-  authToken = token.trim();
+  constructor(message: string, status = 500, code = "API_ERROR") {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const getFreshIdToken = async (forceRefresh = false) => {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new ApiError("No authenticated user. Please sign in again.", 401, "NO_AUTH_USER");
+  }
+
+  return currentUser.getIdToken(forceRefresh);
 };
 
-async function request(path: string, init?: RequestInit) {
+const parseErrorMessage = async (response: Response) => {
+  const body = await response.json().catch(() => null);
+  return body?.message || `Request failed with status ${response.status}`;
+};
+
+type RequestOptions = RequestInit & {
+  auth?: boolean;
+};
+
+async function request(path: string, options: RequestOptions = {}) {
+  const { auth: requiresAuth = true, ...init } = options;
   let lastError: Error | null = null;
 
   for (const base of uniqueCandidateBases) {
     try {
+      const token = requiresAuth ? await getFreshIdToken(false) : "";
+
       const response = await fetch(`${base}${path}`, {
+        ...init,
         headers: {
           "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-          ...(init?.headers || {}),
+          ...(requiresAuth ? { Authorization: `Bearer ${token}` } : {}),
+          ...(init.headers || {}),
         },
-        ...init,
       });
 
+      if (response.status === 401 && requiresAuth) {
+        // Retry once with forced token refresh for expired/stale sessions.
+        const refreshedToken = await getFreshIdToken(true);
+        const retryResponse = await fetch(`${base}${path}`, {
+          ...init,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${refreshedToken}`,
+            ...(init.headers || {}),
+          },
+        });
+
+        if (!retryResponse.ok) {
+          const retryMessage = await parseErrorMessage(retryResponse);
+          throw new ApiError(retryMessage, retryResponse.status, "UNAUTHORIZED");
+        }
+
+        return retryResponse.json();
+      }
+
       if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw new Error(errorBody.message || `Request failed: ${response.status}`);
+        const message = await parseErrorMessage(response);
+        throw new ApiError(message, response.status, response.status === 401 ? "UNAUTHORIZED" : "API_ERROR");
       }
 
       return response.json();
@@ -50,8 +98,14 @@ async function request(path: string, init?: RequestInit) {
     }
   }
 
+  if (lastError instanceof ApiError) {
+    throw lastError;
+  }
+
   const baseHint = uniqueCandidateBases.join(", ") || "(no API base configured)";
-  throw new Error(`Failed to fetch from API. Tried: ${baseHint}. ${lastError?.message || ""}`.trim());
+  throw new Error(
+    `Network error while contacting API (${baseHint}). Check backend URL, CORS, and deployment status.`
+  );
 }
 
 export type Subscription = {
@@ -85,7 +139,7 @@ export const api = {
       body: JSON.stringify({ date, status }),
     }),
   getMe: () => request("/auth/me"),
-  getPlans: () => request("/plans"),
+  getPlans: () => request("/plans", { auth: false }),
   createBillingOrder: (plan: "pro" | "premium") =>
     request("/billing/create-order", {
       method: "POST",
